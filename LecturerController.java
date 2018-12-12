@@ -1,15 +1,15 @@
 package sg.iss.caps.controllers;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,34 +18,49 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import sg.iss.caps.services.StudentCourseService;
+import sg.iss.caps.services.StudentService;
+import sg.iss.caps.validator.StudentValidator;
+import sg.iss.caps.exception.StudentNotFound;
+import sg.iss.caps.model.Course;
+import sg.iss.caps.model.Student;
 import sg.iss.caps.model.Studentcourse;
-import sg.iss.caps.services.LecturerService;
 
-
-@RequestMapping(value="/lecturer")
+@RequestMapping(value = "/lecturer")
 @RestController
 @Controller
 public class LecturerController {
+
+	@RequestMapping(value = "/index")
+	public String index() {
+
+		return "Hello there!";
+	}
 	
 	@Autowired
-	LecturerService lservice;
-
-	/*@RequestMapping(value = "/list", method = RequestMethod.GET)
-	public ModelAndView listAll() {
-		ModelAndView mav = new ModelAndView("Stdlist");
-		ArrayList<Studentcourse> a = lservice.findAllStudentsByLecturer(@pathv);
-		mav.addObject("students", Studentcourse);
-		return mav;
-	}*/
+	StudentCourseService scservice;
 	
-	@RequestMapping(value = "/list/{lectureID}", method = RequestMethod.GET)
-	public ModelAndView listStudentPage(@PathVariable String lid) {
-		ModelAndView mav = new ModelAndView("Stdlist");
-		List<Studentcourse> sc = lservice.findSCByLID(lid);
-		mav.addObject("stud", sc);
-		
+	@RequestMapping(value = "/course/{courseindex}", method = RequestMethod.GET)
+	public ModelAndView viewscbyindexpg(@PathVariable String courseindex) {
+		ModelAndView mav = new ModelAndView("StudentbyCourseIndex");
+		mav.addObject("studentcourse", scservice.Viewcoursebycourseindex(courseindex));
 		return mav;
 	}
-
+	
+	@RequestMapping(value = "/course/edit/{studentid}", method = RequestMethod.GET)
+	public ModelAndView editstudentgradePage(@PathVariable String studentid) {
+		Studentcourse studentcoursedetails = scservice.findStudentcoursebyID(studentid);
+		ModelAndView mav = new ModelAndView("StudentGradeEdit", "studentcoursedetails", studentcoursedetails);
+		return mav;
+	}
+	
+	@RequestMapping(value="/course/edit/{studentid}", method = RequestMethod.POST)
+	public ModelAndView editStudGradePage(@PathVariable String studentid, @ModelAttribute Studentcourse studentcoursedetails ) {
+		scservice.updateGrade(studentcoursedetails);
+		ArrayList<Studentcourse> sc = scservice.findall();
+		ModelAndView mav = new ModelAndView("/index");
+		mav.addObject("sc", sc);
+		return mav;
+	}
 	
 }
